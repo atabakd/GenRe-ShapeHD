@@ -20,6 +20,7 @@ class Camera_back_projection_layer(nn.Module):
             cam_dist = torch.FloatTensor(n, 1).cuda()
             cam_dist.fill_(cmd_v)
         df = CameraBackProjection.apply(depth_t, fl, cam_dist, self.res)
+        # df = CameraBackProjection.apply(depth_t, fl, 3., self.res)
         return self.shift_tdf(df) if shift else df
 
     @staticmethod

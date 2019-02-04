@@ -61,7 +61,9 @@ class render_spherical(torch.nn.Module):
 
     def forward(self, vox):
         grid = self.grid.expand(vox.shape[0], -1, -1, -1, -1)
-        vox = vox.permute(0, 1, 4, 3, 2)
+        # vox = vox.permute(0, 1, 4, 3, 2)
+        vox = vox.permute(0, 1, 3, 4, 2) # ours
+        # vox = vox.permute(0, 1, 2, 4, 3)
         prob_sph = torch.nn.functional.grid_sample(vox, grid)
         prob_sph = torch.clamp(prob_sph, 1e-5, 1 - 1e-5)
         sph_stop_prob = self.calc_stop_prob(prob_sph)

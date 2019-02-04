@@ -50,7 +50,46 @@ def imread_wrapper(*args, output_channel_order='RGB'):
     return im
 
 
-def depth_to_mesh_df(depth_im, th, jitter, upsample=1., cam_loc=[0., 0., 0.], res=128, enlarge=4):
+# def depth_to_mesh_df(depth_im, th, jitter, upsample=0.6, cam_dist=2.0, res=None):
+#     from util.util_camera import tsdf_renderer
+#     depth = depth_im[:, :, 0]
+#     mask = np.where(depth == 0, -1.0, 1.0)
+#     depth = 1 - depth
+#     t = tsdf_renderer()
+#     thl = th[0]
+#     thh = th[1]
+#     if jitter:
+#         th = th + (np.random.rand(2) - 0.5) * 0.1
+#         thl = np.min(th)
+#         thh = np.max(th)
+#     scale = thh - thl
+#     depth = depth * scale
+#     t.depth = (depth + thl) * mask
+#     t.camera.focal_length = 0.05
+#     t.camera.sensor_width = 0.03059411708155671
+#     t.camera.position = np.array([-cam_dist, 0, 0])
+#     t.camera.res = [480, 480]
+#     t.camera.rx = np.array([0, 0, 1])
+#     t.camera.ry = np.array([0, 1, 0])
+#     t.camera.rz = -np.array([1, 0, 0])
+#     t.back_project_ptcloud(upsample=upsample)
+#     tdf = np.ones([128, 128, 128]) / 128
+#     cnt = np.zeros([128, 128, 128])
+#     for pts in t.ptcld:
+#         pt = pts  # np.array([-pts[2], -pts[0], pts[1]])
+#         ids = np.floor((pt + 0.5) * 128).astype(int)
+#         if np.any(np.abs(pt) >= 0.5):
+#             continue
+#         center = ((ids + 0.5) * 1 / 128) - 0.5
+#         dist = ((center[0] - pt[0])**2 + (center[1] - pt[1])
+#                 ** 2 + (center[2] - pt[2])**2)**0.5
+#         n = cnt[ids[0], ids[1], ids[2]]
+#         tdf[ids[0], ids[1], ids[2]] = (
+#             tdf[ids[0], ids[1], ids[2]] * n + dist) / (n + 1)
+#         cnt[ids[0], ids[1], ids[2]] += 1
+#     return tdf
+
+def depth_to_mesh_df(depth_im, th, jitter, upsample=0.6, cam_dist=2.0, res=128):
     from util.util_camera import tsdf_renderer
     depth = depth_im[:, :, 0]
     mask = np.where(depth == 0, -1.0, 1.0)
@@ -67,17 +106,30 @@ def depth_to_mesh_df(depth_im, th, jitter, upsample=1., cam_loc=[0., 0., 0.], re
     t.depth = (depth + thl) * mask
     t.camera.focal_length = 35.27039762259147
     t.camera.sensor_width = 21.160025
-    t.camera.position = -np.array([cam_loc[2], -cam_loc[1], cam_loc[0]])
+    # t.camera.focal_length = 0.05
+    # t.camera.sensor_width = 0.03059411708155671
+    t.camera.position = np.array([-cam_dist, 0, 0])
+    # t.camera.position = np.array([0, 0, cam_dist])
+    # t.camera.position = -np.array([0.030632231140806272, 0.00803169956929697, -0.5926409962060182])
+    t.camera.position = -np.array([0.5926409962060182, 0.00803169956929697, -0.030632231140806272])  # best box
+    # t.camera.position = -np.array([1.0007267272862985, 0.042407717073006626, 0.07082382111559063])  # best drill
+    # t.camera.position = -np.array([1.0007267272862985, 0.042407717073006626, 0.07082382111559063+2*0.08817599405647867])  # best drill hacked
+    # t.camera.position = -np.array([0.7926409962060182, -0.01803169956929697, 0.040632231140806272])
+    # t.camera.position = np.array([-0.5926409962060182, 0.00803169956929697, -0.030632231140806272])
+    # t.camera.position = np.array([-0.5926409962060182, 0.030632231140806272, 0.00803169956929697])
     t.camera.res = [640, 480]
     t.camera.rx = np.array([0, 0, 1])
     t.camera.ry = np.array([0, 1, 0])
     t.camera.rz = -np.array([1, 0, 0])
+    # t.camera.rx = np.array([1, 0, 0])
+    # t.camera.ry = np.array([0, 1, 0])
+    # t.camera.rz = np.array([0, 0, 1])
     t.back_project_ptcloud(upsample=upsample)
     tdf = np.ones([res, res, res]) / res
     cnt = np.zeros([res, res, res])
     for pts in t.ptcld:
-        pt = pts*enlarge  # np.array([-pts[2], -pts[0], pts[1]])
-        # pt = enlarge*np.array([-pts[2], pts[0], pts[1]])
+        pt = pts*4  # np.array([-pts[2], -pts[0], pts[1]])
+        # pt = 4*np.array([-pts[2], pts[0], pts[1]])
         ids = np.floor((pt + 0.5) * res).astype(int)
         if np.any(np.abs(pt) >= 0.5):
             continue
