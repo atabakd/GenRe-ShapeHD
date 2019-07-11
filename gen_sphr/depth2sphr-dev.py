@@ -157,6 +157,7 @@ def vox2sphere(invoxel=None):
 
 def sphere2vox(sphere, res=128):
   # Init
+  sphere = sphere.astype(np.float32)
   grid = spherical_proj.gen_sph_grid(res)
   proj_spherical = SphericalBackProjection().apply
   # margin = 16

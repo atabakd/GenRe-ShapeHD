@@ -90,6 +90,7 @@ def render_spherical(data, res=128, obj_path=None, debug=False):
     im_depth = im_depth.reshape(2 * b, 2 * b)
     im_depth = np.where(im_depth > 1, 1, im_depth)
     mesh.rezero()
+    mesh.apply_translation(-mesh.center_mass)
     im_depth_centered = render_model(mesh, sgrid)
     im_depth_centered = im_depth_centered.reshape(2 * b, 2 * b)
     im_depth_centered = np.where(im_depth_centered > 1, 1, im_depth)

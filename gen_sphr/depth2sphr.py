@@ -3,6 +3,9 @@ from __future__ import print_function, division
 import numpy as np
 import skimage
 import json
+import matplotlib
+matplotlib.use('TkAgg')
+from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import torch
 
@@ -22,7 +25,6 @@ def plot_voxel(voxel):
   ax.set_xlabel("x")
   ax.set_ylabel("y")
   ax.set_zlabel("z")
-  ax.set_aspect('equal')
 
   # voxel = voxel[20:80,20:80,20:80].copy()
   from skimage.measure import block_reduce
@@ -45,8 +47,8 @@ def depth2sphere(data):
   :return: sph_map, sph_centered_map
   '''
 
-  depth_path = data['mask'].replace('mask', 'depth').replace('.png', '1.png').replace('media', 'mnt')
-  mask_path = data['mask'].replace('mask', 'bin_mask').replace('media', 'mnt')
+  depth_path = data['mask'].replace('mask', 'depth').replace('.png', '1.png').replace('media', 'mnt/hamming')
+  mask_path = data['mask'].replace('mask', 'bin_mask').replace('media', 'mnt/hamming')
   # import pdb; pdb.set_trace()
   if not os.path.exists(depth_path) or not os.path.exists(mask_path): return None
   # import pdb; pdb.set_trace()
@@ -73,7 +75,7 @@ def depth2sphere(data):
 
 
 def vox2sphere(data):
-  vox_path = data['mask'].replace('mask', 'voxel').replace('png', 'npz').replace('media', 'mnt')
+  vox_path = data['mask'].replace('mask', 'voxel').replace('png', 'npz').replace('media', 'mnt/hamming')
   if not os.path.exists(vox_path): return None
   voxel = np.load(vox_path)['voxel'].astype(np.float32)
   device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -121,6 +123,7 @@ def vox2sphere(data):
 
 def sphere2vox(sphere, res=128):
   # Init
+  sphere = sphere.astype(np.float32)
   grid = spherical_proj.gen_sph_grid(res)
   proj_spherical = SphericalBackProjection().apply
   # margin = 16
@@ -168,7 +171,8 @@ if __name__ =='__main__':
     data_list = json.load(j_file)
 
   for data in data_list:
-    sph_path = data['mask'].replace('mask', 'spherical').replace('.png', 'npz').replace('media', 'mnt')
+    sph_path = data['mask'].replace('mask', 'spherical').replace('png', 'npz').replace('media', 'mnt/hamming')
+    #import pdb;pdb.set_trace()
     if os.path.exists(sph_path): continue
     d_sphere = depth2sphere(data)
     if d_sphere is None: continue
