@@ -16,3 +16,4 @@ dependencies:
   - trimesh=2.35.47
   - rtree=0.8.3
   - scikit-learn=0.20.1
+  - scipy=1.2.0
